@@ -23,7 +23,7 @@ export interface Ticket {
     category: TicketCategory;
     status: TicketStatus;
     created_at: Date,
-    modified_at: Date,
+    updated_at: Date,
     deleted_at?: Date,
     solved_at?: Date
 }

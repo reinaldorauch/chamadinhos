@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class Ticket extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Defaults
@@ -25,7 +27,7 @@ class Ticket extends Model
      *
      * @var array<int, string>
      */
-    public $fillable = [
+    protected $fillable = [
         'title',
         'category_id',
         'description'
@@ -43,19 +45,29 @@ class Ticket extends Model
 
     public static function sla(): array
     {
-        $currentMonthWhere = DB::raw('YEAR(`created_at`) = YEAR(NOW()) AND MONTH(`created_at`) = MONTH(NOW())');
-
         $solvedCount = self::where('status_id', TicketStatus::SOLVED)
             ->where('solved_at', '<=', 'solution_date')
-            ->where($currentMonthWhere)
+            ->where(DB::raw('YEAR(`created_at`)'), '=', DB::raw('YEAR(NOW())'))
+            ->where(DB::raw('MONTH(created_at)'), '=', DB::raw('MONTH(NOW())'))
             ->count();
 
-        $elseCount = self::where($currentMonthWhere)->count();
+        $elseCount = self::where(DB::raw('YEAR(`created_at`)'), '=', DB::raw('YEAR(NOW())'))
+            ->where(DB::raw('MONTH(created_at)'), '=', DB::raw('MONTH(NOW())'))->count();
 
         return [
             'solved' => $solvedCount,
-            'unsolved' => $solvedCount - $elseCount
+            'unsolved' => $elseCount - $solvedCount
         ];
+    }
+
+    public static function perDayInLastMonth(): Collection
+    {
+        return DB::table('tickets')
+            ->select([DB::raw('COUNT(`id`) as count_per_day'), DB::raw('DATE(`created_at`) as day')])
+            ->groupByRaw('DATE(`created_at`)')
+            ->where(DB::raw('YEAR(`created_at`)'), '=', DB::raw('YEAR(NOW())'))
+            ->where(DB::raw('MONTH(created_at)'), '=', DB::raw('MONTH(NOW())'))
+            ->get();
     }
 
     /**

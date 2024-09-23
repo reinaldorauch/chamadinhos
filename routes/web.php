@@ -26,6 +26,8 @@ Route::prefix('tickets')->group(function () {
     Route::get('/new', [TicketsController::class, 'create'])->name('tickets.create');
     Route::get('/handle', [TicketsController::class, 'handle'])->name('tickets.handle');
     Route::post('/save', [TicketsController::class, 'store'])->name('tickets.store');
+    Route::patch('/save-handle', [TicketsController::class, 'storeHandle'])->name('tickets.store-handle');
+    Route::delete('', [TicketsController::class, 'delete'])->name('tickets.delete');
 })
     ->middleware(['auth', 'verified']);
 

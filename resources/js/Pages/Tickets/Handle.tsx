@@ -1,22 +1,19 @@
 import InputLabel from "@/Components/InputLabel";
-import Modal from "@/Components/Modal";
 import TextAreaInput from "@/Components/TextAreaInput";
 import TextInput from "@/Components/TextInput";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Ticket, PageProps, TicketCategory, TicketStatus } from "@/types";
+import { Ticket, PageProps, TicketStatus } from "@/types";
 import { Field, Select } from "@headlessui/react";
 import { Head, useForm } from "@inertiajs/react";
-import { ChangeEventHandler, FormEventHandler, MouseEventHandler, useState } from "react";
-import CategoryForm from "./CategoryForm";
+import { ChangeEventHandler, FormEventHandler } from "react";
 import PrimaryButton from "@/Components/PrimaryButton";
 import InputError from "@/Components/InputError";
+import { dateTimeFormatter } from "@/utils";
 
 export default function TicketForm({ ticket, status }: PageProps<{ ticket: Ticket, status: TicketStatus[] }>) {
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
-  const { data, setData, post, processing, errors, reset } = useForm<{ title?: string; description?: string, status_id?: number }>({
-    title: ticket?.title,
-    description: ticket?.description,
-    status_id: ticket?.category?.id
+  const { data, setData, patch, processing, errors, reset } = useForm<{ id: number, status_id?: number }>({
+    id: ticket.id,
+    status_id: ticket?.status?.id,
   });
 
   const setStatusId: ChangeEventHandler<HTMLSelectElement> = e => {
@@ -30,16 +27,7 @@ export default function TicketForm({ ticket, status }: PageProps<{ ticket: Ticke
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
 
-    post(route('tickets.store'));
-  };
-
-  const showAddModal: MouseEventHandler = e => {
-    e.preventDefault();
-    setShowAddCategoryModal(true);
-  };
-
-  const onCategorySave = () => {
-    setShowAddCategoryModal(false);
+    patch(route('tickets.store-handle'));
   };
 
   return (
@@ -60,20 +48,23 @@ export default function TicketForm({ ticket, status }: PageProps<{ ticket: Ticke
                     name="title"
                     className="mt-1 block w-full"
                     autoComplete="title"
-                    value={data.title}
-                    onChange={e => setData('title', e.target.value)}
+                    value={ticket.title}
                     disabled
                     required
                   />
-                  <InputError message={errors.title} className="mt-2" />
                 </div>
-                <div className="w-1/2">
+                <div className="w-1/4">
                   <InputLabel htmlFor="categoryId" value="Category *" />
                   <Select id="status_id" value={data?.status_id} required onChange={setStatusId}>
                     <option value="">{!status.length ? 'Please add one category' : 'Please select'}</option>
                     {status.map(c => <option key={c.id} value={c.id}>{c.description}</option>)}
                   </Select>
                   <InputError message={errors.status_id} className="mt-2" />
+                </div>
+                <div className="w-1/4">
+                  <PrimaryButton disabled={processing}>
+                    Update status
+                  </PrimaryButton>
                 </div>
               </div>
               <Field>
@@ -84,24 +75,23 @@ export default function TicketForm({ ticket, status }: PageProps<{ ticket: Ticke
                   className="mt-1 block w-full"
                   autoComplete="description"
                   disabled
-                  value={data.description}
-                  onChange={e => setData('description', e.target.value)}
+                  value={ticket.description}
                   required
                 />
-                <InputError message={errors.description} className="mt-2" />
               </Field>
+              <div className="text-gray-300 flex justify-between">
+                <div>Created at: {dateTimeFormatter(ticket.created_at)}</div>
+                <div>Last updated at: {dateTimeFormatter(ticket.updated_at)}</div>
+                <div>Solution Due Date: {dateTimeFormatter(ticket.solution_date)}</div>
+                <div>Solved at: {ticket.solved_at ? dateTimeFormatter(ticket.solved_at) : 'Not solved'}</div>
+              </div>
               <Field>
-                <PrimaryButton disabled={processing}>
-                  Create ticket
-                </PrimaryButton>
+
               </Field>
             </form>
           </div>
         </div>
       </div>
-      <Modal show={showAddCategoryModal} onClose={() => setShowAddCategoryModal(false)}>
-        <CategoryForm onSave={onCategorySave} />
-      </Modal>
     </AuthenticatedLayout>
   );
 }

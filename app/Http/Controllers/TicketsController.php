@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Ticket\DestroyTicketRequest;
+use App\Http\Requests\Ticket\StoreHandleTicketRequest;
 use App\Http\Requests\Ticket\StoreTicketCategoryRequest;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Models\Ticket;
@@ -57,7 +58,22 @@ class TicketsController extends Controller
         return to_route('tickets');
     }
 
-    public function destory(DestroyTicketRequest $request)
+    function storeHandle(StoreHandleTicketRequest $request)
+    {
+        $t = Ticket::find($request->id);
+
+        if ($request->status_id === TicketStatus::SOLVED) {
+            $t->solved_at = now();
+        } else if ($t->status_id === TicketStatus::SOLVED) {
+            $t->solved_at = null;
+        }
+
+        $t->status_id = $request->status_id;
+
+        $t->save();
+    }
+
+    public function delete(DestroyTicketRequest $request)
     {
         Ticket::find($request->id)->delete();
     }

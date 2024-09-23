@@ -30,6 +30,7 @@ return new class extends Migration
             $t->foreignId('status_id')->constrained(table: 'ticket_status');
             $t->timestamp('solved_at')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
     }
 

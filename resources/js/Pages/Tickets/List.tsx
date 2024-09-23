@@ -1,6 +1,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { PageProps, Ticket } from "@/types";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import { useState } from "react";
 import { AgGridReact, CustomCellRendererProps } from 'ag-grid-react';
 import { dateTimeFormatter } from "@/utils";
@@ -11,7 +11,9 @@ export default function List({ tickets }: PageProps<{ tickets: Ticket[] }>) {
   const [rowData] = useState(tickets);
 
   const onDeleteTicket = (id: number) => {
-    alert('ticket id: ' + id);
+    if (confirm('Are you sure you want to delete this record?')) {
+      router.delete(route('tickets.delete', { id }));
+    }
   }
 
   return (
@@ -35,9 +37,9 @@ export default function List({ tickets }: PageProps<{ tickets: Ticket[] }>) {
                 { field: 'category.description', headerName: 'Category' },
                 { field: 'description' },
                 { field: 'status.description', headerName: 'Status' },
-                { field: 'created_at', headerName: 'Created At', valueFormatter: d => dateTimeFormatter(new Date(d.value)) },
-                { field: 'solution_date', headerName: 'Due Date', valueFormatter: d => dateTimeFormatter(new Date(d.value)) },
-                { field: 'solved_at', headerName: 'Solved At', valueFormatter: d => d.value ? dateTimeFormatter(new Date(d.value)) : 'Not Solved' },
+                { field: 'created_at', headerName: 'Created At', valueFormatter: d => dateTimeFormatter(d.value) },
+                { field: 'solution_date', headerName: 'Due Date', valueFormatter: d => dateTimeFormatter(d.value) },
+                { field: 'solved_at', headerName: 'Solved At', valueFormatter: d => dateTimeFormatter(d.value) || 'Not Solved' },
                 {
                   headerName: "Options",
                   cellRenderer: (props: CustomCellRendererProps) => (
