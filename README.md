@@ -21,4 +21,7 @@ Rodar os seguintes comandos:
 
 * `composer install`
 * `npm ci && npm run build`
+* `php artisan db:seed TicketStatusSeeder`
 * `php artisan serve`
+
+E acessar o sistema pelo link exibido no terminal.
